@@ -107,6 +107,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 #joystick-zone{position:fixed;bottom:0;left:0;width:45vw;height:70vh;z-index:20;pointer-events:auto;-webkit-user-select:none;user-select:none;}
 #camera-zone{position:fixed;top:0;right:0;width:55vw;height:100vh;z-index:15;pointer-events:auto;-webkit-user-select:none;user-select:none;}
 
+/* Minimap */
+#minimap-container{position:fixed;top:48px;right:4px;z-index:30;pointer-events:none;display:flex;align-items:flex-start;gap:0;}
+#minimap{border:2px solid rgba(255,255,255,0.5);border-radius:10px;
+  box-shadow:0 3px 12px rgba(0,0,0,0.35);background:rgba(30,30,30,0.7);transition:all 0.3s;}
+#minimap.collapsed{width:0!important;min-width:0!important;border-width:0;opacity:0;}
+#minimap-toggle{pointer-events:auto;background:rgba(30,30,30,0.7);border:2px solid rgba(255,255,255,0.5);color:#fff;
+  font-size:12px;width:22px;height:22px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1;margin-top:2px;transition:background 0.15s;}
+#minimap-toggle:active{background:rgba(255,255,255,0.2);}
+
 /* Landscape hint */
 #rotate-hint{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;
   pointer-events:auto;flex-direction:column;gap:16px;color:#fff;font-size:18px;font-weight:700;}
@@ -119,6 +129,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 <body>
 
 <canvas id="gameCanvas"></canvas>
+<div id="minimap-container">
+  <canvas id="minimap"></canvas>
+  <button id="minimap-toggle" onclick="toggleMinimap()">◀</button>
+</div>
 
 <div id="rotate-hint"><span class="icon">📱</span>请旋转手机至横屏以获得最佳体验</div>
 
@@ -560,6 +574,34 @@ document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 document.addEventListener('dblclick',e=>e.preventDefault());
 document.addEventListener('gesturestart',e=>e.preventDefault());document.addEventListener('gesturechange',e=>e.preventDefault());document.addEventListener('gestureend',e=>e.preventDefault());
 
+// ==================== MINIMAP ====================
+const minimapCanvas=document.getElementById('minimap');const mmCtx=minimapCanvas.getContext('2d');
+const MM_TILE=4,MM_W=MAP_COLS*MM_TILE,MM_H=MAP_ROWS*MM_TILE;
+function resizeMinimap(){const dpr=window.devicePixelRatio||1;minimapCanvas.width=MM_W*dpr;minimapCanvas.height=MM_H*dpr;minimapCanvas.style.width=MM_W+'px';minimapCanvas.style.height=MM_H+'px';mmCtx.setTransform(dpr,0,0,dpr,0,0);}
+let minimapVisible=true;
+function toggleMinimap(){
+  minimapVisible=!minimapVisible;
+  const mc=document.getElementById('minimap'),tb=document.getElementById('minimap-toggle');
+  if(minimapVisible){mc.classList.remove('collapsed');tb.textContent='◀';}else{mc.classList.add('collapsed');tb.textContent='▶';}
+}
+function drawMinimap(){if(!minimapVisible)return;
+  mmCtx.fillStyle='rgba(30,30,30,0.7)';mmCtx.fillRect(0,0,MM_W,MM_H);
+  for(let r=0;r<MAP_ROWS;r++)for(let c=0;c<MAP_COLS;c++){
+    const t=mapRaw[r][c],mx=c*MM_TILE,my=r*MM_TILE;
+    if(t===T_GRASS)mmCtx.fillStyle='#7ba344';
+    else if(t===T_PATH||t===T_GATE)mmCtx.fillStyle='#c9b896';
+    else if(t===T_FENCE_H||t===T_FENCE_V)mmCtx.fillStyle='#8B7355';
+    else if(t===T_WALL)mmCtx.fillStyle='#A08060';
+    else if(t===T_WATER)mmCtx.fillStyle='#5B8BD4';
+    else mmCtx.fillStyle='#7ba344';
+    mmCtx.fillRect(mx,my,MM_TILE,MM_TILE);
+  }
+  BUILDINGS.forEach(b=>{mmCtx.fillStyle=b.roofColor;mmCtx.fillRect(b.tx*MM_TILE,b.ty*MM_TILE,b.tw*MM_TILE,b.th*MM_TILE);mmCtx.strokeStyle='rgba(0,0,0,0.3)';mmCtx.lineWidth=0.5;mmCtx.strokeRect(b.tx*MM_TILE,b.ty*MM_TILE,b.tw*MM_TILE,b.th*MM_TILE);});
+  animals.forEach(a=>{const ax=a.x/WORLD_W*MM_W,az=a.z/WORLD_H*MM_H;mmCtx.fillStyle=a.type==='horse'?'#E8B070':'#FAFAFA';mmCtx.beginPath();mmCtx.arc(ax,az,2.5,0,Math.PI*2);mmCtx.fill();if(a.isVariant){mmCtx.strokeStyle='#FFD700';mmCtx.lineWidth=1;mmCtx.beginPath();mmCtx.arc(ax,az,3.5,0,Math.PI*2);mmCtx.stroke();}});
+  const px=player.x/WORLD_W*MM_W,pz=player.z/WORLD_H*MM_H;mmCtx.fillStyle='#5C9CE6';mmCtx.beginPath();mmCtx.arc(px,pz,3,0,Math.PI*2);mmCtx.fill();mmCtx.strokeStyle='#fff';mmCtx.lineWidth=1;mmCtx.beginPath();mmCtx.arc(px,pz,3,0,Math.PI*2);mmCtx.stroke();
+}
+resizeMinimap();
+
 // ==================== GAME LOOP ====================
 const clock=new THREE.Clock();
 function gameLoop(){
@@ -568,11 +610,11 @@ function gameLoop(){
   particlesPool.forEach(p=>{if(p.userData.life>0){p.userData.life-=0.015*(dt/16.67);p.position.y+=p.userData.vy*(dt/16.67);p.position.x+=p.userData.vx*(dt/16.67);p.position.z+=p.userData.vz*(dt/16.67);p.material.opacity=Math.max(0,p.userData.life);if(p.userData.life<=0)p.visible=false;}});
   animalMeshes.forEach(({mesh})=>{if(mesh&&mesh.userData.glowRing){mesh.userData.glowRing.rotation.z+=0.03;mesh.userData.glowRing.rotation.x+=0.02;}});
   const now=performance.now();if(now-lastSaveTime>15000){saveGame();lastSaveTime=now;}
-  renderer.render(scene,camera);requestAnimationFrame(gameLoop);
+  drawMinimap();renderer.render(scene,camera);requestAnimationFrame(gameLoop);
 }
 
 // ==================== RESIZE ====================
-window.addEventListener('resize',()=>{renderer.setSize(window.innerWidth,window.innerHeight);camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();resizeJsCanvas();});
+window.addEventListener('resize',()=>{renderer.setSize(window.innerWidth,window.innerHeight);camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();resizeJsCanvas();resizeMinimap();});
 
 // ==================== INIT ====================
 function init(){
@@ -584,7 +626,7 @@ function init(){
   try{if(!localStorage.getItem(TUTORIAL_KEY))showTutorial();}catch(e){showTutorial();}
   requestAnimationFrame(gameLoop);
 }
-window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;window.showTutorial=showTutorial;window.restartGame=restartGame;
+window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;window.showTutorial=showTutorial;window.restartGame=restartGame;window.toggleMinimap=toggleMinimap;
 init();
 </script>
 </body>
