@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="screen-orientation" content="landscape">
-<title>奢侈品农场 3D</title>
+<title>奢侈品农场 v1.0</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action:none;
@@ -124,7 +124,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 
 <div id="ui-layer">
   <div id="hud">
-    <span class="title">🏡 奢侈品农场</span>
+    <span class="title">奢侈品农场 v1.0</span>
     <span style="display:flex;align-items:center;gap:8px;">
       <button id="help-btn" onclick="showTutorial()">?</button>
       <span class="count" id="animalCount">🐾 0/3</span>
@@ -146,13 +146,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 
 <div id="tutorial-overlay">
   <div id="tutorial-card">
-    <h2>🌟 欢迎来到奢侈品农场 3D</h2>
-    <div class="subtitle">领养可爱动物，悉心照料，触发稀有变异！</div>
+    <h2>🌟 欢迎来到奢侈品农场</h2>
+    <div class="subtitle">领养可爱动物，悉心照料，触发稀有变异！v1.0</div>
     <div class="tutorial-steps">
-      <div class="tutorial-step"><span class="icon">🕹️</span><span class="text"><b>左侧</b>拖动摇杆移动角色</span></div>
-      <div class="tutorial-step"><span class="icon">👆</span><span class="text"><b>右侧</b>滑动旋转视角，双指缩放</span></div>
-      <div class="tutorial-step"><span class="icon">🐾</span><span class="text">点击右下按钮领养牛或马</span></div>
-      <div class="tutorial-step"><span class="icon">💖</span><span class="text">1分钟成年前喂食清洁，成年后互动变异</span></div>
+      <div class="tutorial-step"><span class="icon">🕹️</span><span class="text"><b>左侧半屏</b>拖动摇杆移动角色</span></div>
+      <div class="tutorial-step"><span class="icon">👆</span><span class="text"><b>右侧半屏</b>上下左右滑动旋转视角</span></div>
+      <div class="tutorial-step"><span class="icon">🤏</span><span class="text"><b>右侧双指</b>捏合缩放镜头距离</span></div>
+      <div class="tutorial-step"><span class="icon">🐾</span><span class="text">点击右下角按钮领养牛或马</span></div>
+      <div class="tutorial-step"><span class="icon">🔍</span><span class="text">靠近动物弹出菜单：喂食、清洁、互动</span></div>
+      <div class="tutorial-step"><span class="icon">⏱️</span><span class="text">1分钟成年前只能喂食清洁，成年后可互动变异</span></div>
     </div>
     <div id="tutorial-actions">
       <button id="tutorial-btn" onclick="dismissTutorial()">开始游戏 🎮</button>
