@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="screen-orientation" content="landscape">
-<title>奢侈品农场 v1.4.0 制作人：刘大美女</title>
+<title>奢侈品农场 v2.0 制作人：刘大美女</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action:none;
@@ -159,7 +159,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 
 <div id="ui-layer">
   <div id="hud">
-    <span class="title">奢侈品农场 v1.4.0 制作人：刘大美女</span>
+    <span class="title">奢侈品农场 v2.0 制作人：刘大美女</span>
     <span style="display:flex;align-items:center;gap:8px;">
       <button id="help-btn" onclick="showTutorial()">?</button>
       <span class="count" id="animalCount">🐾 0/3</span>
@@ -184,7 +184,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 <div id="tutorial-overlay">
   <div id="tutorial-card">
     <h2>🌟 欢迎来到奢侈品农场</h2>
-    <div class="subtitle">领养可爱动物，悉心照料，触发稀有变异！v1.4.0</div>
+    <div class="subtitle">领养可爱动物，悉心照料，触发稀有变异！v2.0</div>
     <div class="tutorial-steps">
       <div class="tutorial-step"><span class="icon">🕹️</span><span class="text"><b>左侧半屏</b>摇杆控制移动（我的世界式操作）</span></div>
       <div class="tutorial-step"><span class="icon">👆</span><span class="text"><b>右侧半屏</b>滑动旋转视角，指哪走哪</span></div>
@@ -817,7 +817,7 @@ function dismissTutorial(){document.getElementById('tutorial-overlay').style.dis
 function showTutorial(){document.getElementById('tutorial-overlay').style.display='flex';}
 function restartGame(){
   animals.forEach(a=>removeAnimalMesh(a));
-  animals=[];clearRoute();
+  animals=[];clearRoute();mutationSeq=null;
   player.x=14*TILE_SIZE;player.z=8*TILE_SIZE;player.dir='down';playerFeed=0;totalFeedBought=0;
   playerGroup.position.set(player.x,0,player.z);
   try{localStorage.removeItem(SAVE_KEY);}catch(e){}
