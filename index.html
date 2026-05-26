@@ -265,18 +265,17 @@ renderer.setSize(window.innerWidth,window.innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.0;
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color('#b8d4e3');
-scene.fog=new THREE.Fog('#c0dce8',150,750);
+scene.background=new THREE.Color('#3a3530');
+scene.fog=new THREE.Fog('#4a4035',120,600);
 
 const camera=new THREE.PerspectiveCamera(48,window.innerWidth/window.innerHeight,5,1200);
 
-// === LIGHTING (warmer, less harsh) ===
-const ambient=new THREE.AmbientLight('#fff5e0',1.2);
+// === LIGHTING (steampunk moody) ===
+const ambient=new THREE.AmbientLight('#e8dcc8',0.55);
 scene.add(ambient);
-const sun=new THREE.DirectionalLight('#fff8e8',2.8);
+const sun=new THREE.DirectionalLight('#ffe4c0',2.0);
 sun.position.set(200,350,150);
 sun.castShadow=true;
 sun.shadow.mapSize.width=2048;sun.shadow.mapSize.height=2048;
@@ -285,22 +284,23 @@ sun.shadow.camera.left=-500;sun.shadow.camera.right=500;
 sun.shadow.camera.top=350;sun.shadow.camera.bottom=-350;
 sun.shadow.bias=-0.0004;
 scene.add(sun);
-const hemi=new THREE.HemisphereLight('#c8dce8','#8aaa6a',0.8);
+const hemi=new THREE.HemisphereLight('#a09080','#5a4a3a',0.35);
 scene.add(hemi);
+renderer.toneMappingExposure=0.72;
 
 // ==================== GROUND ====================
 function createGroundTexture(){
   const c=document.createElement('canvas');c.width=WORLD_W;c.height=WORLD_H;const cx=c.getContext('2d');
-  cx.fillStyle='#8fbf5a';cx.fillRect(0,0,WORLD_W,WORLD_H);
+  cx.fillStyle='#6b7a4a';cx.fillRect(0,0,WORLD_W,WORLD_H);
   for(let r=0;r<MAP_ROWS;r++)for(let col=0;col<MAP_COLS;col++){
     const t=mapRaw[r][col],sx=col*TILE_SIZE,sy=r*TILE_SIZE;
-    if(t===T_PATH){cx.fillStyle='#d5c4a1';cx.fillRect(sx,sy,TILE_SIZE,TILE_SIZE);cx.fillStyle='rgba(0,0,0,0.06)';cx.fillRect(sx,sy,TILE_SIZE,1);}
-    if(t===T_GATE){cx.fillStyle='#c9a87c';cx.fillRect(sx,sy,TILE_SIZE,TILE_SIZE);}
+    if(t===T_PATH){cx.fillStyle='#b8a080';cx.fillRect(sx,sy,TILE_SIZE,TILE_SIZE);cx.fillStyle='rgba(0,0,0,0.08)';cx.fillRect(sx,sy,TILE_SIZE,1);}
+    if(t===T_GATE){cx.fillStyle='#a08868';cx.fillRect(sx,sy,TILE_SIZE,TILE_SIZE);}
   }
   // Grass detail
-  cx.fillStyle='rgba(0,0,0,0.04)';
+  cx.fillStyle='rgba(0,0,0,0.06)';
   for(let i=0;i<800;i++){const px=Math.random()*WORLD_W,py=Math.random()*WORLD_H;cx.fillRect(px,py,2+Math.random()*3,1);}
-  cx.fillStyle='rgba(255,255,255,0.03)';
+  cx.fillStyle='rgba(180,160,120,0.04)';
   for(let i=0;i<300;i++){cx.fillRect(Math.random()*WORLD_W,Math.random()*WORLD_H,2,1);}
   return new THREE.CanvasTexture(c);
 }
@@ -508,27 +508,32 @@ function findNearestAnimal(){let n=null,md=INTERACT_RANGE;animals.forEach(a=>{co
 function checkGrowth(){animals.forEach(a=>{if(!a.isAdult&&Date.now()>=a.adultDeadline){a.isAdult=true;showToast('🎊 '+a.name+' 成年了！现在可以互动啦～','success');saveGame();}});}
 let routeTarget=null,routeArrows=[];
 function clearRoute(){if(routeArrows.length){routeArrows.forEach(m=>scene.remove(m));routeArrows=[];}routeTarget=null;}
-function adoptAnimal(){if(animals.length>=MAX_ANIMALS){showToast('动物栏已满！最多养 3 只。','fail');return;}const types=['horse','cow'],type=types[Math.floor(Math.random()*types.length)];const a=createAnimal(type);animals.push(a);clearRoute();routeTarget={x:a.x,z:a.z};updateRouteArrows();saveGame();updateAnimalCountUI();showToast('成功领养了一只 '+a.name+'！跟着指引箭头去找它吧～','success');}
+function adoptAnimal(){if(animals.length>=MAX_ANIMALS){showToast('动物栏已满！最多养 3 只。','fail');return;}const types=['horse','cow'],type=types[Math.floor(Math.random()*types.length)];const a=createAnimal(type);animals.push(a);clearRoute();routeTarget={x:a.x,z:a.z};updateRouteArrows();saveGame();updateAnimalCountUI();showToast('成功领养了一只 '+a.name+'！跟着金色箭头走～','success');}
 function updateRouteArrows(){
   clearRoute();
   if(!routeTarget)return;
-  const steps=8,px=player.x,pz=player.z,dx=(routeTarget.x-px)/steps,dz=(routeTarget.z-pz)/steps;
+  const px=player.x,pz=player.z,tx=routeTarget.x,tz=routeTarget.z,dist=Math.sqrt((tx-px)**2+(tz-pz)**2),steps=Math.ceil(dist/40);
+  const dx=(tx-px)/steps,dz=(tz-pz)/steps;
   for(let i=1;i<=steps;i++){
     const g=new THREE.Group();
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.6,4,8),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.75,depthTest:false}));
-    ring.position.y=3;ring.renderOrder=999;g.add(ring);
-    const dot=new THREE.Mesh(new THREE.SphereGeometry(1.5,4,4),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.8,depthTest:false}));
-    dot.position.y=3;dot.renderOrder=999;g.add(dot);
-    g.position.set(px+dx*i,0.2,pz+dz*i);g.userData.phase=Math.random()*Math.PI*2;
+    // Glowing disc on ground
+    const disc=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.5,8),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.7,depthTest:false}));
+    disc.renderOrder=999;g.add(disc);
+    // Tall gold pillar
+    const pillar=new THREE.Mesh(new THREE.CylinderGeometry(1,1.5,8,6),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.5,depthTest:false}));
+    pillar.position.y=4;pillar.renderOrder=999;g.add(pillar);
+    g.position.set(px+dx*i,0.1,pz+dz*i);g.userData.phase=Math.random()*Math.PI*2;g.userData.pillar=pillar;
     scene.add(g);routeArrows.push(g);
   }
-  // beacon at target
+  // Big beacon at target: spinning rings + tall beam
   const beacon=new THREE.Group();
-  const bRing=new THREE.Mesh(new THREE.TorusGeometry(5,1,6,16),new THREE.MeshBasicMaterial({color:'#FF6D00',transparent:true,opacity:0.7,depthTest:false}));
-  bRing.rotation.x=Math.PI/2;bRing.position.y=1;bRing.renderOrder=999;beacon.add(bRing);
-  const bPillar=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,18,6),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.5,depthTest:false}));
-  bPillar.position.y=9;bPillar.renderOrder=999;beacon.add(bPillar);
-  beacon.position.set(routeTarget.x,0,routeTarget.z);
+  for(let j=0;j<3;j++){
+    const r=new THREE.Mesh(new THREE.TorusGeometry(6+j*2,0.6,6,20),new THREE.MeshBasicMaterial({color:['#FFD700','#FF8F00','#FFD700'][j],transparent:true,opacity:0.65,depthTest:false}));
+    r.rotation.x=Math.PI/2+j*0.4;r.renderOrder=999;r.userData.offset=j;beacon.add(r);
+  }
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(2,2,22,8),new THREE.MeshBasicMaterial({color:'#FFD700',transparent:true,opacity:0.4,depthTest:false}));
+  beam.position.y=11;beam.renderOrder=999;beacon.add(beam);
+  beacon.position.set(tx,0,tz);beacon.userData.beaconRings=beacon.children.filter(c=>c.geometry&&c.geometry.type==='TorusGeometry');
   scene.add(beacon);routeArrows.push(beacon);
 }
 function doAction(action){
@@ -643,7 +648,7 @@ function gameLoop(){
   updatePlayer(dt);animals.forEach(a=>updateAnimal(a,dt));checkGrowth();updateCamera(dt);updateInteractionUI();
   particlesPool.forEach(p=>{if(p.userData.life>0){p.userData.life-=0.015*(dt/16.67);p.position.y+=p.userData.vy*(dt/16.67);p.position.x+=p.userData.vx*(dt/16.67);p.position.z+=p.userData.vz*(dt/16.67);p.material.opacity=Math.max(0,p.userData.life);if(p.userData.life<=0)p.visible=false;}});
   animalMeshes.forEach(({mesh})=>{if(mesh&&mesh.userData.glowRing){mesh.userData.glowRing.rotation.z+=0.03;mesh.userData.glowRing.rotation.x+=0.02;}});
-  if(routeTarget){const d=Math.sqrt((player.x-routeTarget.x)**2+(player.z-routeTarget.z)**2);if(d<50)clearRoute();else{routeArrows.forEach(g=>{if(g.children[0]&&g.children[0].material&&g.children[0].material.color){g.children[0].rotation.z+=0.04;g.children[0].material.opacity=0.5+0.25*Math.sin(Date.now()*0.005+g.userData.phase);}if(g.children[1]&&g.children[1].material)g.children[1].material.opacity=0.5+0.3*Math.sin(Date.now()*0.005+g.userData.phase);});}}
+  if(routeTarget){const d=Math.sqrt((player.x-routeTarget.x)**2+(player.z-routeTarget.z)**2);if(d<45)clearRoute();else{routeArrows.forEach(g=>{const t=Date.now()*0.004;if(g.userData.beaconRings){g.userData.beaconRings.forEach((r,i)=>{r.rotation.z+=0.03+i*0.01;r.rotation.y+=0.02;});}else{const p=g.userData.pillar;if(p)p.position.y=4+Math.sin(t+g.userData.phase)*1.5;g.children[0].material.opacity=0.4+0.3*Math.sin(t+g.userData.phase);}});}}
   const now=performance.now();if(now-lastSaveTime>15000){saveGame();lastSaveTime=now;}
   drawMinimap();renderer.render(scene,camera);requestAnimationFrame(gameLoop);
 }
