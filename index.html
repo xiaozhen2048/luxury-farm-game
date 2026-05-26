@@ -194,7 +194,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
       <div class="tutorial-step"><span class="icon">⏱️</span><span class="text">1分钟成年前只能喂食清洁，成年后可互动变异</span></div>
     </div>
     <div id="tutorial-actions">
-      <button id="tutorial-btn" onclick="dismissTutorial()">开始游戏 🎮</button>
+      <button id="tutorial-btn" onclick="document.getElementById('tutorial-overlay').style.display='none';try{localStorage.setItem('luxuryFarmTutorial3D','1');}catch(e){}">开始游戏 🎮</button>
       <button id="restart-btn" onclick="restartGame()">🔄 重新开局</button>
     </div>
   </div>
@@ -203,7 +203,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 <div id="camera-zone"></div>
 
 <script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
 </script>
 
 <script type="module">
