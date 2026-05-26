@@ -114,8 +114,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 #restart-btn:active{transform:scale(0.92);background:#FFEBEE;}
 
 /* Joystick + Camera zones */
-#joystick-zone{position:fixed;bottom:0;left:0;width:45vw;height:70vh;z-index:20;pointer-events:auto;-webkit-user-select:none;user-select:none;}
-#camera-zone{position:fixed;top:0;right:0;width:55vw;height:100vh;z-index:15;pointer-events:auto;-webkit-user-select:none;user-select:none;}
+#joystick-zone{position:fixed;bottom:0;left:0;width:40vw;height:75vh;z-index:20;pointer-events:auto;-webkit-user-select:none;user-select:none;}
+#camera-zone{position:fixed;top:0;right:0;width:60vw;height:100vh;z-index:15;pointer-events:auto;-webkit-user-select:none;user-select:none;}
 
 /* Minimap */
 #minimap-container{position:fixed;top:48px;right:4px;z-index:30;pointer-events:none;display:flex;align-items:flex-start;gap:0;}
@@ -592,10 +592,10 @@ function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
 const joystickZone=document.getElementById('joystick-zone');let joystickBase=null,activePointerId=null;
 const jsCanvas=document.createElement('canvas');jsCanvas.style.cssText='position:fixed;bottom:0;left:0;width:45vw;height:70vh;z-index:25;pointer-events:none;';document.body.appendChild(jsCanvas);
 const jsCtx=jsCanvas.getContext('2d');
-function resizeJsCanvas(){const dpr=window.devicePixelRatio||1,w=window.innerWidth*0.45,h=window.innerHeight*0.7;jsCanvas.width=w*dpr;jsCanvas.height=h*dpr;jsCanvas.style.width=w+'px';jsCanvas.style.height=h+'px';jsCtx.setTransform(dpr,0,0,dpr,0,0);}
-function drawJs(){jsCtx.clearRect(0,0,jsCanvas.width,jsCanvas.height);if(!joystickBase)return;const bx=joystickBase.x,by=joystickBase.y,mr=45,tr=24;jsCtx.fillStyle='rgba(255,255,255,0.12)';jsCtx.strokeStyle='rgba(255,255,255,0.25)';jsCtx.lineWidth=2.5;jsCtx.beginPath();jsCtx.arc(bx,by,mr,0,Math.PI*2);jsCtx.fill();jsCtx.stroke();const ox=Math.max(-mr,Math.min(mr,inputVec.dx*mr)),oy=Math.max(-mr,Math.min(mr,inputVec.dy*mr));jsCtx.fillStyle='rgba(255,255,255,0.35)';jsCtx.beginPath();jsCtx.arc(bx+ox,by+oy,tr,0,Math.PI*2);jsCtx.fill();}
+function resizeJsCanvas(){const dpr=window.devicePixelRatio||1,w=window.innerWidth*0.4,h=window.innerHeight*0.75;jsCanvas.width=w*dpr;jsCanvas.height=h*dpr;jsCanvas.style.width=w+'px';jsCanvas.style.height=h+'px';jsCtx.setTransform(dpr,0,0,dpr,0,0);}
+function drawJs(){jsCtx.clearRect(0,0,jsCanvas.width,jsCanvas.height);if(!joystickBase)return;const bx=joystickBase.x,by=joystickBase.y,mr=55,tr=26;jsCtx.fillStyle='rgba(255,255,255,0.1)';jsCtx.strokeStyle='rgba(255,255,255,0.22)';jsCtx.lineWidth=2;jsCtx.beginPath();jsCtx.arc(bx,by,mr,0,Math.PI*2);jsCtx.fill();jsCtx.stroke();const ox=Math.max(-mr,Math.min(mr,inputVec.dx*mr)),oy=Math.max(-mr,Math.min(mr,inputVec.dy*mr));jsCtx.fillStyle='rgba(255,255,255,0.3)';jsCtx.beginPath();jsCtx.arc(bx+ox,by+oy,tr,0,Math.PI*2);jsCtx.fill();}
 joystickZone.addEventListener('pointerdown',e=>{e.preventDefault();joystickBase={x:e.clientX,y:e.clientY};activePointerId=e.pointerId;resizeJsCanvas();drawJs();hideTouchHints();});
-window.addEventListener('pointermove',e=>{if(!joystickBase||e.pointerId!==activePointerId)return;e.preventDefault();const dx=e.clientX-joystickBase.x,dy=e.clientY-joystickBase.y,mr=45,mag=Math.sqrt(dx*dx+dy*dy),cm=Math.min(mag,mr);if(mag>0.5){inputVec.dx=(dx/mag)*(cm/mr);inputVec.dy=(dy/mag)*(cm/mr);inputVec.active=true;}else{inputVec.dx=0;inputVec.dy=0;inputVec.active=false;}drawJs();hideTouchHints();});
+window.addEventListener('pointermove',e=>{if(!joystickBase||e.pointerId!==activePointerId)return;e.preventDefault();const dx=e.clientX-joystickBase.x,dy=e.clientY-joystickBase.y,mr=55,mag=Math.sqrt(dx*dx+dy*dy),cm=Math.min(mag,mr);if(mag>2.5){const raw=cm/mr,curve=Math.pow(raw,0.65);inputVec.dx=(dx/mag)*curve;inputVec.dy=(dy/mag)*curve;inputVec.active=true;}else{inputVec.dx=0;inputVec.dy=0;inputVec.active=false;}drawJs();hideTouchHints();});
 window.addEventListener('pointerup',e=>{if(e.pointerId!==activePointerId)return;joystickBase=null;activePointerId=null;inputVec.dx=0;inputVec.dy=0;inputVec.active=false;jsCtx.clearRect(0,0,jsCanvas.width,jsCanvas.height);});
 window.addEventListener('pointercancel',e=>{if(e.pointerId!==activePointerId)return;joystickBase=null;activePointerId=null;inputVec.dx=0;inputVec.dy=0;inputVec.active=false;jsCtx.clearRect(0,0,jsCanvas.width,jsCanvas.height);});
 
