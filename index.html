@@ -93,10 +93,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
 .tutorial-step{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:6px;
   background:#F5F5F5;border-radius:14px;font-size:13px;color:#444;line-height:1.3;}
 .tutorial-step .icon{font-size:24px;flex-shrink:0;width:36px;text-align:center;}
+#tutorial-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 #tutorial-btn{padding:12px 40px;font-size:15px;font-weight:700;color:#fff;
   background:linear-gradient(135deg,#66BB6A,#43A047);border:none;border-radius:40px;
   box-shadow:0 5px 16px rgba(67,160,71,0.4);cursor:pointer;letter-spacing:1px;min-height:42px;}
 #tutorial-btn:active{transform:scale(0.92);}
+#restart-btn{padding:12px 28px;font-size:14px;font-weight:600;color:#E57373;
+  background:transparent;border:2px solid #E57373;border-radius:40px;cursor:pointer;
+  letter-spacing:1px;min-height:42px;transition:all 0.15s;}
+#restart-btn:active{transform:scale(0.92);background:#FFEBEE;}
 
 /* Joystick + Camera zones */
 #joystick-zone{position:fixed;bottom:0;left:0;width:45vw;height:70vh;z-index:20;pointer-events:auto;-webkit-user-select:none;user-select:none;}
@@ -149,7 +154,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
       <div class="tutorial-step"><span class="icon">🐾</span><span class="text">点击右下按钮领养牛或马</span></div>
       <div class="tutorial-step"><span class="icon">💖</span><span class="text">1分钟成年前喂食清洁，成年后互动变异</span></div>
     </div>
-    <button id="tutorial-btn" onclick="dismissTutorial()">开始游戏 🎮</button>
+    <div id="tutorial-actions">
+      <button id="tutorial-btn" onclick="dismissTutorial()">开始游戏 🎮</button>
+      <button id="restart-btn" onclick="restartGame()">🔄 重新开局</button>
+    </div>
   </div>
 </div>
 <div id="joystick-zone"></div>
@@ -504,6 +512,16 @@ function updateInteractionUI(){
 // ==================== TUTORIAL ====================
 function dismissTutorial(){document.getElementById('tutorial-overlay').style.display='none';try{localStorage.setItem(TUTORIAL_KEY,'1');}catch(e){}}
 function showTutorial(){document.getElementById('tutorial-overlay').style.display='flex';}
+function restartGame(){
+  animals.forEach(a=>removeAnimalMesh(a));
+  animals=[];
+  player.x=13*TILE_SIZE;player.z=14*TILE_SIZE;player.dir='down';
+  playerGroup.position.set(player.x,0,player.z);
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  saveGame();updateAnimalCountUI();updateInteractionUI();
+  document.getElementById('tutorial-overlay').style.display='none';
+  showToast('已重新开局！去领养动物吧～','success');
+}
 
 // ==================== TOUCH HINTS ====================
 let hintsHidden=false;
@@ -564,7 +582,7 @@ function init(){
   try{if(!localStorage.getItem(TUTORIAL_KEY))showTutorial();}catch(e){showTutorial();}
   requestAnimationFrame(gameLoop);
 }
-window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;window.showTutorial=showTutorial;
+window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;window.showTutorial=showTutorial;window.restartGame=restartGame;
 init();
 </script>
 </body>
