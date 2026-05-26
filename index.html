@@ -132,7 +132,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#5a8a3a;touch-action
   pointer-events:auto;flex-direction:column;gap:16px;color:#fff;font-size:18px;font-weight:700;}
 #rotate-hint .icon{font-size:60px;animation:rotatePhone 3s ease-in-out infinite;}
 @keyframes rotatePhone{0%,100%{transform:rotate(0deg);}50%{transform:rotate(90deg);}}
-@media(orientation:portrait){#rotate-hint{display:flex;}}
+@media(orientation:portrait){#rotate-hint{display:none;}}
 @media(orientation:landscape){#rotate-hint{display:none;}}
 </style>
 </head>
@@ -466,7 +466,7 @@ function createAnimal(type){
 function removeAnimalMesh(a){if(a.mesh){scene.remove(a.mesh);a.mesh=null;}const idx=animalMeshes.findIndex(m=>m.id===a.id);if(idx>=0)animalMeshes.splice(idx,1);}
 
 // ==================== CAMERA (Third-Person Orbit) ====================
-let orbitAngle=0,orbitAngleV=0.58,orbitDistance=65,orbitVelocity=0,cameraLookHeight=7;
+let orbitAngle=0,orbitAngleV=0.72,orbitDistance=85,orbitVelocity=0,cameraLookHeight=7;
 function updateCamera(dt){
   if(!rightTouchActive&&Math.abs(orbitVelocity)>0.0005){orbitAngle+=orbitVelocity*(dt/16.67);orbitVelocity*=0.9;}
   const hDist=orbitDistance*Math.cos(orbitAngleV);
@@ -479,7 +479,7 @@ function isBlocked(wx,wz){const col=Math.floor(wx/TILE_SIZE),row=Math.floor(wz/T
 function updatePlayer(dt){
   if(!inputVec.active){player.moving=false;return;}
   const dx=inputVec.dx,dy=inputVec.dy,mag=Math.sqrt(dx*dx+dy*dy);if(mag<0.15){player.moving=false;return;}player.moving=true;
-  const fwdX=-Math.sin(orbitAngle),fwdZ=-Math.cos(orbitAngle),rightX=-Math.cos(orbitAngle),rightZ=Math.sin(orbitAngle);
+  const fwdX=-Math.sin(orbitAngle),fwdZ=-Math.cos(orbitAngle),rightX=Math.cos(orbitAngle),rightZ=-Math.sin(orbitAngle);
   const moveX=rightX*dx+fwdX*(-dy),moveZ=rightZ*dx+fwdZ*(-dy);const moveMag=Math.sqrt(moveX*moveX+moveZ*moveZ);if(moveMag<0.01){player.moving=false;return;}
   const nx=moveX/moveMag,nz=moveZ/moveMag,speed=PLAYER_SPEED*(dt/16.67),hw=4;
   let npx=player.x+nx*speed;if(npx-hw>=0&&npx+hw<WORLD_W&&!isBlocked(npx-hw,player.z-hw)&&!isBlocked(npx+hw,player.z+hw))player.x=npx;
@@ -577,7 +577,7 @@ window.addEventListener('pointermove',e=>{if(!rightTouchActive||e.pointerId!==ri
 window.addEventListener('pointerup',e=>{if(e.pointerId!==rightTouchId)return;rightTouchActive=false;rightTouchId=null;});
 window.addEventListener('pointercancel',e=>{if(e.pointerId!==rightTouchId)return;rightTouchActive=false;rightTouchId=null;});
 let pinchD0=0;cameraZone.addEventListener('touchstart',e=>{if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;pinchD0=Math.sqrt(dx*dx+dy*dy);}},{passive:true});
-cameraZone.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchD0>0){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);orbitDistance=Math.max(30,Math.min(150,orbitDistance*(pinchD0/dist)));pinchD0=dist;}},{passive:true});
+cameraZone.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchD0>0){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);orbitDistance=Math.max(40,Math.min(180,orbitDistance*(pinchD0/dist)));pinchD0=dist;}},{passive:true});
 cameraZone.addEventListener('touchend',()=>{pinchD0=0;});
 
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
