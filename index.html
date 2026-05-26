@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>奢侈品农场 Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(170deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 16px 12px 130px;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(22px, 5vw, 32px);
+    margin-bottom: 8px;
+    color: #1b5e20;
+    letter-spacing: 2px;
+  }
+  h1 small {
+    display: block;
+    font-size: clamp(12px, 3vw, 15px);
+    font-weight: 400;
+    color: #558b2f;
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  .animals-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 500px;
+    margin: 16px auto 0;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+    animation: cardIn 0.35s ease-out;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card.variant-hermes {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 50%, #ffcc80 100%);
+    box-shadow: 0 2px 20px rgba(255,152,0,0.2);
+  }
+  .card.variant-lv {
+    background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 50%, #bcaaa4 100%);
+    box-shadow: 0 2px 20px rgba(109,76,65,0.2);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .card-emoji { font-size: 44px; line-height: 1; flex-shrink: 0; }
+  .card-name {
+    font-size: 20px;
+    font-weight: 700;
+    flex: 1;
+    min-width: 0;
+  }
+  .adult-badge {
+    font-size: 11px;
+    background: #4caf50;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .countdown {
+    font-size: 13px;
+    color: #e65100;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: #fff3e0;
+    padding: 5px 10px;
+    border-radius: 12px;
+  }
+
+  .stat-row { margin-bottom: 14px; }
+  .stat-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  .stat-bar-bg {
+    height: 12px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .stat-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: rgba(255,255,255,0.3);
+    border-radius: 6px 6px 0 0;
+  }
+  .stat-bar-fill.hunger { background: linear-gradient(90deg, #ff9800, #ffb74d); }
+  .stat-bar-fill.clean  { background: linear-gradient(90deg, #42a5f5, #64b5f6); }
+  .stat-bar-fill.affect { background: linear-gradient(90deg, #ec407a, #f06292); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .btn-row button {
+    flex: 1;
+    padding: 14px 4px;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    transition: transform 0.08s, box-shadow 0.08s;
+    -webkit-user-select: none;
+    user-select: none;
+    min-height: 48px;
+  }
+  .btn-row button:active {
+    transform: scale(0.94);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .btn-feed  { background: linear-gradient(180deg, #ff9800, #f57c00); }
+  .btn-clean { background: linear-gradient(180deg, #42a5f5, #1e88e5); }
+  .btn-pet   { background: linear-gradient(180deg, #ec407a, #d81b60); }
+
+  .empty-state {
+    text-align: center;
+    color: #888;
+    padding: 80px 20px;
+  }
+  .empty-state .emoji { font-size: 72px; margin-bottom: 16px; display: block; }
+  .empty-state p { font-size: 17px; color: #666; }
+
+  .adopt-btn-wrap {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom, 12px));
+    background: linear-gradient(0deg, rgba(200,230,201,0.98) 60%, transparent);
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+  }
+  .adopt-btn {
+    padding: 16px 56px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(180deg, #43a047, #2e7d32);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(46,125,50,0.4);
+    letter-spacing: 2px;
+    min-height: 52px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .adopt-btn:active { transform: scale(0.95); }
+  .adopt-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.15);
+  }
+
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    text-align: center;
+    max-width: 90vw;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    letter-spacing: 0.5px;
+  }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #2e7d32; }
+  .toast.fail { background: #c62828; }
+
+  /* 变异特效 */
+  .card.evolving {
+    animation: evolve 0.5s ease-out;
+  }
+  @keyframes evolve {
+    0%   { transform: scale(1.05); filter: brightness(1.3); }
+    100% { transform: scale(1);    filter: brightness(1); }
+  }
+
+  /* 小屏适配 */
+  @media (max-width: 380px) {
+    .card { padding: 16px 14px; }
+    .card-emoji { font-size: 36px; }
+    .card-name { font-size: 17px; }
+    .btn-row button { font-size: 13px; padding: 12px 2px; border-radius: 12px; }
+    .btn-row { gap: 6px; }
+    .stat-label { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>奢侈品农场 <small>Luxury Farm</small></h1>
+
+<div class="animals-grid" id="animalsGrid"></div>
+
+<div class="adopt-btn-wrap">
+  <button class="adopt-btn" id="adoptBtn" onclick="adoptAnimal()">🐾 领养动物</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MAX_ANIMALS = 3;
+const ADULT_SECONDS = 30;
+const MUTATION_THRESHOLD = 80;
+const LOW_MUTATION_RATE = 0.05;
+
+const ANIMAL_TYPES = {
+  horse: {
+    name: '马',
+    emoji: '🐴',
+    variantName: '爱马仕马',
+    variantEmoji: '🦄',
+    variantClass: 'variant-hermes',
+  },
+  donkey: {
+    name: '驴',
+    emoji: '🦙',
+    variantName: 'LV驴',
+    variantEmoji: '👑🦙',
+    variantClass: 'variant-lv',
+  },
+};
+
+let animals = [];
+let tickTimer = null;
+let renderedCards = {}; // track which cards already exist, to avoid re-creating for animation
+
+function save() {
+  try {
+    localStorage.setItem('luxuryFarmAnimals', JSON.stringify(animals));
+  } catch (e) { /* quota exceeded, silently ignore */ }
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('luxuryFarmAnimals');
+    if (raw) { animals = JSON.parse(raw); }
+  } catch (e) { animals = []; }
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type || '');
+  // Force reflow to re-trigger transition
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(function() { el.classList.remove('show'); }, 2800);
+}
+
+function adoptAnimal() {
+  if (animals.length >= MAX_ANIMALS) {
+    showToast('动物栏已满！最多养 3 只。', 'fail');
+    return;
+  }
+  var types = ['horse', 'donkey'];
+  var type = types[Math.floor(Math.random() * types.length)];
+  var info = ANIMAL_TYPES[type];
+  var animal = {
+    id: uid(),
+    type: type,
+    name: info.name,
+    emoji: info.emoji,
+    isVariant: false,
+    variantType: null,
+    hunger: 50,
+    cleanliness: 50,
+    affection: 30,
+    adultDeadline: Date.now() + ADULT_SECONDS * 1000,
+    isAdult: false,
+  };
+  animals.push(animal);
+  renderedCards = {}; // new card, allow fresh animation
+  save();
+  renderAll();
+  showToast('成功领养了一只 ' + info.name + '！', 'success');
+}
+
+function feed(id) {
+  var a = findAnimal(id);
+  if (!a) return;
+  a.hunger = Math.min(100, a.hunger + 15);
+  save();
+  updateCardDOM(a);
+}
+
+function clean(id) {
+  var a = findAnimal(id);
+  if (!a) return;
+  a.cleanliness = Math.min(100, a.cleanliness + 15);
+  save();
+  updateCardDOM(a);
+}
+
+function pet(id) {
+  var a = findAnimal(id);
+  if (!a) return;
+  a.affection = Math.min(100, a.affection + 15);
+  save();
+  updateCardDOM(a);
+}
+
+function findAnimal(id) {
+  for (var i = 0; i < animals.length; i++) {
+    if (animals[i].id === id) return animals[i];
+  }
+  return null;
+}
+
+function checkAdult(a) {
+  if (a.isAdult) return false;
+  if (Date.now() >= a.adultDeadline) {
+    a.isAdult = true;
+    var allHigh = a.hunger >= MUTATION_THRESHOLD && a.cleanliness >= MUTATION_THRESHOLD && a.affection >= MUTATION_THRESHOLD;
+    var success = allHigh || Math.random() < LOW_MUTATION_RATE;
+    if (success) {
+      var info = ANIMAL_TYPES[a.type];
+      a.isVariant = true;
+      a.variantType = a.type === 'horse' ? 'hermes' : 'lv';
+      a.name = info.variantName;
+      a.emoji = info.variantEmoji;
+      // Flash the card
+      var cardEl = document.getElementById('card-' + a.id);
+      if (cardEl) {
+        cardEl.classList.add('evolving');
+        setTimeout(function() { cardEl.classList.remove('evolving'); }, 500);
+      }
+      showToast('🎉 恭喜！你的动物变异成了 ' + a.name + '！', 'success');
+    } else {
+      showToast('动物成年了，但没有变异。继续努力吧！', 'fail');
+    }
+    renderedCards = {};
+    save();
+    return true;
+  }
+  return false;
+}
+
+function cardHTML(a) {
+  var info = ANIMAL_TYPES[a.type];
+  var remaining = Math.max(0, Math.ceil((a.adultDeadline - Date.now()) / 1000));
+  var variantClass = '';
+  if (a.isVariant) {
+    variantClass = a.variantType === 'hermes' ? 'variant-hermes' : 'variant-lv';
+  }
+  var nameDisplay = (a.isVariant ? '✨' : '') + a.name;
+
+  var statusBadge;
+  if (a.isAdult) {
+    statusBadge = '<span class="adult-badge">已成年</span>';
+  } else if (remaining <= 5) {
+    statusBadge = '<span class="countdown" style="color:#d32f2f;background:#ffebee">⏳ ' + remaining + ' 秒</span>';
+  } else {
+    statusBadge = '<span class="countdown">⏳ ' + remaining + ' 秒</span>';
+  }
+
+  return '<div class="card ' + variantClass + '" id="card-' + a.id + '">' +
+    '<div class="card-header">' +
+      '<span class="card-emoji" id="emoji-' + a.id + '">' + a.emoji + '</span>' +
+      '<span class="card-name" id="name-' + a.id + '">' + nameDisplay + '</span>' +
+      statusBadge +
+    '</div>' +
+    statBarHTML('饱食度', a.hunger, 'hunger', 'hunger-' + a.id) +
+    statBarHTML('清洁度', a.cleanliness, 'clean', 'clean-' + a.id) +
+    statBarHTML('好感度', a.affection, 'affect', 'affect-' + a.id) +
+    '<div class="btn-row">' +
+      '<button class="btn-feed" onclick="feed(\'' + a.id + '\')">🍎 喂食</button>' +
+      '<button class="btn-clean" onclick="clean(\'' + a.id + '\')">🧹 清洁</button>' +
+      '<button class="btn-pet" onclick="pet(\'' + a.id + '\')">💖 互动</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function statBarHTML(label, value, cls, id) {
+  return '<div class="stat-row">' +
+    '<div class="stat-label"><span>' + label + '</span><span id="val-' + id + '">' + value + '%</span></div>' +
+    '<div class="stat-bar-bg"><div class="stat-bar-fill ' + cls + '" id="bar-' + id + '" style="width:' + value + '%"></div></div>' +
+  '</div>';
+}
+
+// Lightweight DOM update for a single card (avoids full re-render)
+function updateCardDOM(a) {
+  var card = document.getElementById('card-' + a.id);
+  if (!card) { renderAll(); return; }
+
+  // Update variant class
+  card.className = 'card';
+  if (a.isVariant) {
+    card.classList.add(a.variantType === 'hermes' ? 'variant-hermes' : 'variant-lv');
+  }
+
+  // Update emoji
+  var emojiEl = document.getElementById('emoji-' + a.id);
+  if (emojiEl) emojiEl.textContent = a.emoji;
+
+  // Update name
+  var nameEl = document.getElementById('name-' + a.id);
+  if (nameEl) nameEl.textContent = (a.isVariant ? '✨' : '') + a.name;
+
+  // Update stat bars
+  updateStatBar('hunger-' + a.id, a.hunger);
+  updateStatBar('clean-' + a.id, a.cleanliness);
+  updateStatBar('affect-' + a.id, a.affection);
+}
+
+function updateStatBar(id, value) {
+  var bar = document.getElementById('bar-' + id);
+  var val = document.getElementById('val-' + id);
+  if (bar) bar.style.width = value + '%';
+  if (val) val.textContent = value + '%';
+}
+
+function renderAll() {
+  var grid = document.getElementById('animalsGrid');
+  var btn = document.getElementById('adoptBtn');
+
+  if (animals.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><span class="emoji">🌱</span><p>还没有动物，点击下方按钮领养一只吧！</p></div>';
+  } else {
+    // Use innerHTML for full render (e.g., after adoption or mutation)
+    var html = '';
+    for (var i = 0; i < animals.length; i++) {
+      html += cardHTML(animals[i]);
+    }
+    grid.innerHTML = html;
+    renderedCards = {};
+    for (var j = 0; j < animals.length; j++) {
+      renderedCards[animals[j].id] = true;
+    }
+  }
+
+  btn.disabled = animals.length >= MAX_ANIMALS;
+  btn.textContent = animals.length >= MAX_ANIMALS ? '动物栏已满' : '🐾 领养动物';
+}
+
+function tick() {
+  for (var i = 0; i < animals.length; i++) {
+    var a = animals[i];
+    if (!a.isAdult && Date.now() >= a.adultDeadline) {
+      checkAdult(a);
+      renderAll();
+      return;
+    }
+  }
+  // Update countdowns in-place
+  for (var j = 0; j < animals.length; j++) {
+    var b = animals[j];
+    if (b.isAdult) continue;
+    var card = document.getElementById('card-' + b.id);
+    if (!card) continue;
+    var header = card.querySelector('.card-header');
+    if (!header) continue;
+    var badge = header.querySelector('.countdown');
+    if (!badge) continue;
+    var remaining = Math.max(0, Math.ceil((b.adultDeadline - Date.now()) / 1000));
+    if (remaining <= 5) {
+      badge.style.color = '#d32f2f';
+      badge.style.background = '#ffebee';
+    }
+    badge.textContent = '⏳ ' + remaining + ' 秒';
+  }
+}
+
+// ---- Init ----
+load();
+for (var k = 0; k < animals.length; k++) {
+  checkAdult(animals[k]);
+}
+renderAll();
+tickTimer = setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
