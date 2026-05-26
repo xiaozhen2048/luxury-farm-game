@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>奢侈品农场 - Luxury Farm</title>
@@ -109,7 +109,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:no
 <div id="ui-layer">
   <div id="hud">
     <span class="title">🏡 奢侈品农场</span>
-    <span class="count" id="animalCount">🐾 0/3</span>
+    <span style="display:flex;align-items:center;gap:8px;">
+      <button id="help-btn" onclick="showTutorial()" style="background:rgba(255,255,255,0.25);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;font-weight:700;cursor:pointer;pointer-events:auto;">?</button>
+      <span class="count" id="animalCount">🐾 0/3</span>
+    </span>
   </div>
   <button id="adopt-btn" onclick="adoptAnimal()">🐾 领养动物</button>
   <div id="animal-info"></div>
@@ -827,12 +830,13 @@ function updateInteractionUI(){
 }
 
 // ==================== TUTORIAL ====================
+let tutorialSeen=false;
 function dismissTutorial(){
   document.getElementById('tutorial-overlay').style.display='none';
+  tutorialSeen=true;
   try{localStorage.setItem(TUTORIAL_KEY,'1');}catch(e){}
 }
-function showTutorialIfNeeded(){
-  try{if(localStorage.getItem(TUTORIAL_KEY)){document.getElementById('tutorial-overlay').style.display='none';return;}}catch(e){}
+function showTutorial(){
   document.getElementById('tutorial-overlay').style.display='flex';
 }
 
@@ -893,12 +897,24 @@ window.addEventListener('pointerup',e=>{if(e.pointerId!==activePointerId)return;
 window.addEventListener('pointercancel',e=>{if(e.pointerId!==activePointerId)return;joystickBase=null;activePointerId=null;inputVec.dx=0;inputVec.dy=0;inputVec.active=false;jsCtx.clearRect(0,0,jsCanvas.width,jsCanvas.height);});
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 
+// ==================== GROWTH CHECK ====================
+function checkGrowth(){
+  animals.forEach(a=>{
+    if(!a.isAdult&&Date.now()>=a.adultDeadline){
+      a.isAdult=true;
+      showToast('🎊 '+a.name+' 成年了！现在可以互动啦～','success');
+      saveGame();
+    }
+  });
+}
+
 // ==================== GAME LOOP ====================
 let lastTime=0;
 function gameLoop(timestamp){
   let dt=timestamp-lastTime;lastTime=timestamp;if(dt>100)dt=100;if(dt<=0)dt=16.67;
   updatePlayer(dt);
   animals.forEach(a=>updateAnimal(a,dt));
+  checkGrowth();
   updateParticles(dt);
   updateCamera();
   updateInteractionUI();
@@ -914,10 +930,16 @@ function init(){
   resizeCanvas();resizeJsCanvas();loadGame();updateAnimalCountUI();
   lastTime=performance.now();lastSaveTime=lastTime;
   camera.x=player.x-vpW/2;camera.y=player.y-vpH/2;updateCamera();
-  showTutorialIfNeeded();
+  // Show tutorial on first visit
+  try{if(!localStorage.getItem(TUTORIAL_KEY))showTutorial();}catch(e){showTutorial();}
   requestAnimationFrame(gameLoop);
 }
-window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;
+// Prevent double-tap zoom and pinch zoom
+document.addEventListener('dblclick',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('gesturechange',e=>e.preventDefault());
+document.addEventListener('gestureend',e=>e.preventDefault());
+window.adoptAnimal=adoptAnimal;window.doAction=doAction;window.dismissTutorial=dismissTutorial;window.showTutorial=showTutorial;
 init();
 </script>
 </body>
